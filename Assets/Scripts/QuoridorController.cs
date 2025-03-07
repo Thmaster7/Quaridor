@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 public class QuoridorController : MonoBehaviour
@@ -11,11 +12,14 @@ public class QuoridorController : MonoBehaviour
     public GameObject BoardPiece;
     public GameObject PlayPiece;
     public int NumberOfPlayers;
-    
+    public GameObject centerPiece;
+    public Canvas canvas;
+    public Text text;
+
     int boardSize;
-    
+
     GameObject Board, Piece;
-    
+
 
     Vector3 side1Start, side2Start, side3Start, side4Start;
     List<Vector3> sidesToPlacePiece = new List<Vector3>();
@@ -68,7 +72,7 @@ public class QuoridorController : MonoBehaviour
                 b.setPos(boardPiece.gameObject.transform.position);
                 board.AddPiece(b);
 
-                if(i == 0 && j == 4)
+                if (i == 0 && j == 4)
                 {
                     side1Start = boardPiece.gameObject.transform.position;
                 }
@@ -80,9 +84,13 @@ public class QuoridorController : MonoBehaviour
                 {
                     side3Start = boardPiece.gameObject.transform.position;
                 }
-                if (i == boardSize -1 && j == 4)
+                if (i == boardSize - 1 && j == 4)
                 {
                     side4Start = boardPiece.gameObject.transform.position;
+                }
+                if (j == 4 && i == 4)
+                {
+                    centerPiece = boardPiece.gameObject;
                 }
 
                 dx = dx + BoardPiece.transform.localScale.x + offset;
@@ -100,16 +108,18 @@ public class QuoridorController : MonoBehaviour
         Piece = new GameObject();
         Piece.name = "PieceContainer";
 
-        if ( _numOfPlayers <= 1 || _numOfPlayers > 4)
+        if (_numOfPlayers <= 1 || _numOfPlayers > 4)
         {
             Debug.Log("You can only hace from 2 to 4 players");
             return;
         }
 
-        for(int i = 0; i <_numOfPlayers; i++)
+        for (int i = 0; i < _numOfPlayers; i++)
         {
-            GameObject playPiece = Instantiate(PlayPiece, sidesToPlacePiece[i] + new Vector3(0,0.5f,0), Quaternion.identity);
+            GameObject playPiece = Instantiate(PlayPiece, sidesToPlacePiece[i] + new Vector3(0, 0.5f, 0), Quaternion.RotateTowards(transform.rotation, Quaternion.identity, 1));
             playPiece.transform.parent = Piece.gameObject.transform;
+
+            playPiece.transform.LookAt(centerPiece.transform.position + new Vector3(0, 0.5f, 0));
             piecesOnBoard.Add(playPiece.GetComponent<Piece>());
         }
     }
@@ -134,22 +144,22 @@ public class QuoridorController : MonoBehaviour
     }
     void ChangeTurn()
     {
-        if(numberOfTurns > 0 )
+        if (numberOfTurns > 0)
         {
             movablePiece.IsCurrentlyPlaying = false;
             movablePiece.currentBoardPiece = null;
 
         }
-        
-        if (actualTurn > NumberOfPlayers - 1 )
+
+        if (actualTurn > NumberOfPlayers - 1)
         {
             actualTurn = 0;
         }
         actualTurn++;
 
-        for(int i = 0; i < NumberOfPlayers;i++)
+        for (int i = 0; i < NumberOfPlayers; i++)
         {
-            if (piecesOnBoard[i].getOrderInTurn()==actualTurn)
+            if (piecesOnBoard[i].getOrderInTurn() == actualTurn)
             {
                 Debug.Log("Player " + piecesOnBoard[i].getOrderInTurn() + " turn");
                 movablePiece = piecesOnBoard[i];
@@ -160,7 +170,9 @@ public class QuoridorController : MonoBehaviour
         foreach (var _pieceOfBoard in board.BoardPieces)
         {
             _pieceOfBoard.HasActivePlayerOnTop = false;
+            _pieceOfBoard.hasPlayerOnTop = false;
             _pieceOfBoard.PieceCanBeMovedHere = false;
+            _pieceOfBoard.playerOnTop = null;
         }
         numberOfTurns++;
     }
@@ -169,21 +181,35 @@ public class QuoridorController : MonoBehaviour
     {
         if (isplaying)
         {
+            CheckIfWin();
             WaitForMove();
             CheckWhoIsCurrentlyPlaying();
             HighlightBoardPiece();
             CheckWhereIsPlayer();
-            
-            if(movablePiece.IsTurnDone)
+
+            if (movablePiece.IsTurnDone)
             {
                 ChangeTurn();
             }
         }
     }
 
+    void CheckIfWin()
+    {
+        foreach (var _piece in piecesOnBoard)
+        {
+            if(_piece.NumPlaysForward == boardSize -1)
+            {
+                isplaying = false;
+                canvas.gameObject.SetActive(true);
+                text.text = "Player " + _piece.getOrderInTurn() + " has won the game!";
+            }
+        }
+    }
+
     void CheckWhoIsCurrentlyPlaying()
     {
-        if(movablePiece.getOrderInTurn() == actualTurn)
+        if (movablePiece.getOrderInTurn() == actualTurn)
         {
             movablePiece.IsCurrentlyPlaying = true;
         }
@@ -217,11 +243,11 @@ public class QuoridorController : MonoBehaviour
 
     void WaitForMove()
     {
-        if(Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))
         {
             RaycastHit hit;
 
-            if(!Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit))
+            if (!Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit))
             {
                 return;
             }
@@ -229,30 +255,30 @@ public class QuoridorController : MonoBehaviour
             if (hit.transform.gameObject.tag == "Board_Segment")
             {
                 BoardPiece _boardPiece = hit.transform.GetComponent<BoardPiece>();
-                if(!_boardPiece.HasActivePlayerOnTop)
+                if (!_boardPiece.HasActivePlayerOnTop)
                 {
                     movablePiece.MakeAMove(_boardPiece, movablePiece.transform.forward);
                 }
             }
-            
+
         }
     }
 
     void HighlightBoardPiece()
     {
-        foreach(var _boardPiece in board.BoardPieces)
+        foreach (var _boardPiece in board.BoardPieces)
         {
-            if(_boardPiece.HasActivePlayerOnTop)
+            if (_boardPiece.HasActivePlayerOnTop)
             {
-                if(_boardPiece.FrontBoard != null)
+                if (_boardPiece.FrontBoard != null)
                 {
-                    if(!_boardPiece.FrontBoard.hasPlayerOnTop)
+                    if (!_boardPiece.FrontBoard.hasPlayerOnTop)
                     {
                         if (_boardPiece.FrontBoard)
                         {
                             _boardPiece.FrontBoard.PieceCanBeMovedHere = true;
                         }
-                            
+
                     }
                     else
                     {
@@ -266,7 +292,7 @@ public class QuoridorController : MonoBehaviour
                                 {
                                     _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
                                 }
-                                    
+
 
                             }
                             else
@@ -275,7 +301,7 @@ public class QuoridorController : MonoBehaviour
                                 {
                                     _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
                                 }
-                                    
+
 
 
                             }
@@ -287,32 +313,177 @@ public class QuoridorController : MonoBehaviour
 
                         }
                     }
-                    
                 }
-                /*if (_boardPiece.RightBoard != null)
+
+                if (_boardPiece.RightBoard != null)
                 {
-                    _boardPiece.RightBoard.PieceCanBeMovedHere = true;
+                    if (!_boardPiece.RightBoard.hasPlayerOnTop)
+                    {
+                        if (_boardPiece.RightBoard)
+                        {
+                            _boardPiece.RightBoard.PieceCanBeMovedHere = true;
+                        }
+
+                    }
+                    else
+                    {
+                        RaycastHit hit2;
+                        if (Physics.Raycast(_boardPiece.RightBoard.playerOnTop.gameObject
+                            .transform.position, transform.TransformDirection(Vector3.forward), out hit2))
+                        {
+                            if (_boardPiece.rightRightBoard.hasPlayerOnTop)
+                            {
+                                if (_boardPiece.rightRightBoard)
+                                {
+                                    _boardPiece.rightRightBoard.PieceCanBeMovedHere = false;
+                                }
+
+
+                            }
+                            else
+                            {
+                                if (_boardPiece.rightRightBoard)
+                                {
+                                    _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
+                                }
+
+
+
+                            }
+                        }
+                        else
+                        {
+                            if (_boardPiece.rightRightBoard)
+                                _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
+
+                        }
+                    }
                 }
                 if (_boardPiece.LeftBoard != null)
                 {
-                    _boardPiece.LeftBoard.PieceCanBeMovedHere = true;
+                    if (!_boardPiece.LeftBoard.hasPlayerOnTop)
+                    {
+                        if (_boardPiece.LeftBoard)
+                        {
+                            _boardPiece.LeftBoard.PieceCanBeMovedHere = true;
+                        }
+
+                    }
+                    else
+                    {
+                        RaycastHit hit2;
+                        if (Physics.Raycast(_boardPiece.LeftBoard.playerOnTop.gameObject
+                            .transform.position, transform.TransformDirection(Vector3.forward), out hit2))
+                        {
+                            if (_boardPiece.leftLeftBoard.hasPlayerOnTop)
+                            {
+                                if (_boardPiece.leftLeftBoard)
+                                {
+                                    _boardPiece.leftLeftBoard.PieceCanBeMovedHere = false;
+                                }
+
+
+                            }
+                            else
+                            {
+                                if (_boardPiece.leftLeftBoard)
+                                {
+                                    _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
+                                }
+
+
+
+                            }
+                        }
+                        else
+                        {
+                            if (_boardPiece.leftLeftBoard)
+                                _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
+
+                        }
+                    }
                 }
                 if (_boardPiece.BackBoard != null)
                 {
-                    _boardPiece.BackBoard.PieceCanBeMovedHere = true;
-                }*/
+                    if (!_boardPiece.BackBoard.hasPlayerOnTop)
+                    {
+                        if (_boardPiece.BackBoard)
+                        {
+                            _boardPiece.BackBoard.PieceCanBeMovedHere = true;
+                        }
+
+                    }
+                    else
+                    {
+                        RaycastHit hit2;
+                        if (Physics.Raycast(_boardPiece.BackBoard.playerOnTop.gameObject
+                            .transform.position, transform.TransformDirection(Vector3.forward), out hit2))
+                        {
+                            if (_boardPiece.backBackBoard.hasPlayerOnTop)
+                            {
+                                if (_boardPiece.backBackBoard)
+                                {
+                                    _boardPiece.backBackBoard.PieceCanBeMovedHere = false;
+                                }
+
+
+                            }
+                            else
+                            {
+                                if (_boardPiece.backBackBoard)
+                                {
+                                    _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
+                                }
+
+
+
+                            }
+                        }
+                        else
+                        {
+                            if (_boardPiece.backBackBoard)
+                                _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
+
+                        }
+                    }
+                }
+
+
             }
+            /*if (_boardPiece.RightBoard != null)
+            {
+                _boardPiece.RightBoard.PieceCanBeMovedHere = true;
+            }
+            if (_boardPiece.LeftBoard != null)
+            {
+                _boardPiece.LeftBoard.PieceCanBeMovedHere = true;
+            }
+            if (_boardPiece.BackBoard != null)
+            {
+                _boardPiece.BackBoard.PieceCanBeMovedHere = true;
+            }*/
+        
         }
+
+        int layerMask = LayerMask.GetMask("BoardPieces");
+
 
         RaycastHit hit;
 
-        if(Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit))
+        if(Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, Mathf.Infinity, layerMask))
         {
             BoardPiece _boardPiece = hit.transform.GetComponent<BoardPiece>();
 
             if(!cam.GetComponent<SimpleCameraController>().IsCameraMoving)
             {
-                _boardPiece.setHighlight(true, movablePiece, board);
+                if(!_boardPiece.hasPlayerOnTop)
+                {
+                    _boardPiece.setHighlight(true, movablePiece, board);
+                }
+        
+
+                
+        
             }
         }
         else
