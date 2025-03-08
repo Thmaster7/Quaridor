@@ -208,6 +208,7 @@ public class QuoridorController : MonoBehaviour
             CheckWhoIsCurrentlyPlaying();
             setPlayerTurnText();
             CheckWhereIsPlayer();
+            
             if (actualBlocker)
             {
                 findSpotToPlaceBlock();
@@ -369,22 +370,7 @@ public class QuoridorController : MonoBehaviour
 
         }
     }
-    void PlaceBlocker(Vector3 position)
-    {
-        Instantiate(Blocker, position, Quaternion.identity);
-
-        // Buscar los BoardPieces cercanos y actualizar sus bloqueos
-        Collider[] colliders = Physics.OverlapBox(position, new Vector3(1f, 1f, 1f));
-
-        foreach (Collider collider in colliders)
-        {
-            BoardPiece piece = collider.GetComponent<BoardPiece>();
-            if (piece != null)
-            {
-                piece.UpdateSurroundingBlocker();
-            }
-        }
-    }
+    
 
 
     void HighlightBoardPiece()
