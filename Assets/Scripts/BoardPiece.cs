@@ -3,6 +3,7 @@ using UnityEngine;
 public class BoardPiece : MonoBehaviour
 {
     [SerializeField] BoardCoordinate boardCoordinate;
+    public GameObject PlaceBlockerPiece;
 
     int column;
     int row;
@@ -12,6 +13,8 @@ public class BoardPiece : MonoBehaviour
 
     [SerializeField] private bool isHighlighted;
     [SerializeField] private bool pieceCanBeMovedHere;
+
+    public bool HasSurroundingBlocker;
 
     public bool PieceCanBeMovedHere
     {
@@ -89,8 +92,30 @@ public class BoardPiece : MonoBehaviour
         pieceCanBeMovedHere = false;
         hasPlayerOnTop = false;
         playerOnTop = null;
+        HasSurroundingBlocker = false;
 
         FindNeighbors();
+        setBlockerPlacePiece();
+    }
+    public void setBlockerPlacePiece()
+    {
+
+        if (rightBoard && frontBoard)
+        {
+            GameObject boardPlacePiece = Instantiate(PlaceBlockerPiece, transform.position +
+            new Vector3(transform.localScale.x / 2 + 0.1f, 0, transform.localScale.z / 2 + 0.1f), Quaternion.identity)
+                as GameObject;
+
+            QuoridorController QC = GameObject.FindWithTag("GameController").GetComponent<QuoridorController>();
+
+            boardPlacePiece.transform.parent = QC.BlockerPlace1.gameObject.transform;
+            QC.placeBlockerList.Add(boardPlacePiece.GetComponent<PlaceBlocker>());
+
+        }
+
+
+
+
     }
 
     private void Update()

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1121097850119834769
+--- !u!1 &4391153088462879715
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,48 +8,47 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 656118083391961669}
-  - component: {fileID: 5997428157258123152}
-  - component: {fileID: 4715416372703500236}
-  - component: {fileID: 3248700869233049935}
-  - component: {fileID: 2965589363798287055}
+  - component: {fileID: 1219094829190393448}
+  - component: {fileID: 8769474981754567870}
+  - component: {fileID: 5388158809847458109}
+  - component: {fileID: 3238251757743067133}
   m_Layer: 0
-  m_Name: Board_Segment
-  m_TagString: Board_Segment
+  m_Name: Blocker
+  m_TagString: Blocker
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &656118083391961669
+--- !u!4 &1219094829190393448
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1121097850119834769}
+  m_GameObject: {fileID: 4391153088462879715}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 0.06, z: 1}
+  m_LocalPosition: {x: 261.4305, y: 86.40451, z: 320.82513}
+  m_LocalScale: {x: 0.13762218, y: 0.37539, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &5997428157258123152
+--- !u!33 &8769474981754567870
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1121097850119834769}
+  m_GameObject: {fileID: 4391153088462879715}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &4715416372703500236
+--- !u!23 &5388158809847458109
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1121097850119834769}
+  m_GameObject: {fileID: 4391153088462879715}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -66,7 +65,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 3efc7f85af2a79b4e85ace14ccc8bfe1, type: 2}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -88,13 +87,13 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &3248700869233049935
+--- !u!65 &3238251757743067133
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1121097850119834769}
+  m_GameObject: {fileID: 4391153088462879715}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -109,35 +108,3 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &2965589363798287055
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1121097850119834769}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c036bb56d654cae4994535338fb47578, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  boardCoordinate:
-    row: 0
-    column: 0
-    pos: {x: 0, y: 0, z: 0}
-  PlaceBlockerPiece: {fileID: 4391153088462879715, guid: 9bd270b1b1fe2a64cb76aeb1ae9b00ea, type: 3}
-  isHighlighted: 0
-  pieceCanBeMovedHere: 0
-  HasSurroundingBlocker: 0
-  frontBoard: {fileID: 0}
-  rightBoard: {fileID: 0}
-  leftBoard: {fileID: 0}
-  backBoard: {fileID: 0}
-  diagonalBoard: {fileID: 0}
-  rightRightBoard: {fileID: 0}
-  leftLeftBoard: {fileID: 0}
-  backBackBoard: {fileID: 0}
-  frontFrontBoard: {fileID: 0}
-  hasPlayerOnTop: 0
-  playerOnTop: {fileID: 0}
-  hasActivePlayerOnTop: 0

@@ -12,6 +12,7 @@ public class Piece : MonoBehaviour
     public Vector3 forwardVector;
     public int NumPlaysForward;
     public BoardPiece currentBoardPiece;
+    public int NumOfBlockPieces;
 
     private bool isTurnDone;
     [SerializeField] private bool isCurrentlyPlaying;
@@ -45,6 +46,7 @@ public class Piece : MonoBehaviour
         isTurnDone = false;
         isCurrentlyPlaying = false;
         hasWon = false;
+        setBlockerPieces();
         
         
     }
@@ -52,6 +54,20 @@ public class Piece : MonoBehaviour
     void Update()
     {
         forwardVector = transform.forward;
+    }
+
+    void setBlockerPieces()
+    {
+        QuoridorController QC = GameObject.FindWithTag("GameController").GetComponent<QuoridorController>();
+
+        if (QC.NumberOfPlayers == 2)
+        {
+            NumOfBlockPieces = 10;
+        }
+        else if (QC.NumberOfPlayers == 4)
+        {
+            NumOfBlockPieces = 5;
+        }
     }
 
     void setColor()
