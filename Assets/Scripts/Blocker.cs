@@ -1,5 +1,5 @@
 using UnityEngine;
-using static Blocker;
+
 
 public class Blocker : MonoBehaviour
 {
@@ -31,7 +31,7 @@ public class Blocker : MonoBehaviour
             AttachBlockerToCursor();
             setOrientation();
         }
-        if(Input.GetKeyDown(KeyCode.F))
+        if(Input.GetKeyDown(KeyCode.P))
         {
             if(!hasBeenPlaced)
             {

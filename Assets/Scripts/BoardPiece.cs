@@ -9,12 +9,20 @@ public class BoardPiece : MonoBehaviour
     int row;
     Vector3 pos;
     private Color col;
-    
+
+    [SerializeField] private bool hasSurroundingBlocker;
+
+    public bool HasSurroundingBlocker
+    {
+        get { return hasSurroundingBlocker; }
+        set { hasSurroundingBlocker = value; }
+    }
+
 
     [SerializeField] private bool isHighlighted;
     [SerializeField] private bool pieceCanBeMovedHere;
 
-    public bool HasSurroundingBlocker;
+    
 
     public bool PieceCanBeMovedHere
     {
@@ -84,7 +92,7 @@ public class BoardPiece : MonoBehaviour
 
     private void Start()
     {
-        boardCoordinate = new BoardCoordinate(column, row, transform.position);
+        boardCoordinate = new BoardCoordinate(column, row, pos);
         isHighlighted = false;
         col = gameObject.GetComponent<Renderer>().material.color;
         frontBoard = leftBoard = rightBoard = backBoard = null;
@@ -117,6 +125,21 @@ public class BoardPiece : MonoBehaviour
 
 
     }
+    public void UpdateSurroundingBlocker()
+    {
+        Collider[] colliders = Physics.OverlapBox(transform.position, new Vector3(0.5f, 1f, 0.5f));
+
+        foreach (Collider collider in colliders)
+        {
+            if (collider.GetComponent<Blocker>())
+            {
+                HasSurroundingBlocker = true;
+                return; // Si encuentra un muro, termina la función
+            }
+        }
+
+        HasSurroundingBlocker = false; // Si no encuentra muros, lo pone en falso
+    }
 
     private void Update()
     {
@@ -130,6 +153,7 @@ public class BoardPiece : MonoBehaviour
             hasActivePlayerOnTop = true;
         }
     }
+    
 
     public void checkIfAnyPlayerOnTop(Piece _piece)
     {
@@ -169,9 +193,16 @@ public class BoardPiece : MonoBehaviour
             backBoard = hit.transform.gameObject.GetComponent<BoardPiece>();
             backBoard2 = hit.transform.gameObject;
         }
+        if (rightBoard != null)
+        {
+            if (Physics.Raycast(rightBoard2.transform.position,
+                transform.TransformDirection(Vector3.back), out hit))
+            {
+                diagonalBoard = hit.transform.gameObject.GetComponent<BoardPiece>();
+            }
+        }
 
-        
-        if (frontBoard)
+        if (frontBoard != null)
         {
             if (Physics.Raycast(frontBoard2.transform.position,
                 transform.TransformDirection(Vector3.forward), out hit))
@@ -179,6 +210,8 @@ public class BoardPiece : MonoBehaviour
                 frontFrontBoard = hit.transform.gameObject.GetComponent<BoardPiece>();
             }
         }
+
+        
 
         if (rightBoard)
         {

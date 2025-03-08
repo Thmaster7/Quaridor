@@ -36,7 +36,7 @@ public class QuoridorController : MonoBehaviour
     private bool isplaying;
     [SerializeField] private int actualTurn;
 
-    private Piece movablePiece;
+    [SerializeField]private Piece movablePiece;
     private Board board;
     private Camera cam;
 
@@ -46,7 +46,7 @@ public class QuoridorController : MonoBehaviour
     public Text BlockerCountText;
     public Text PlayerTurnText;
 
-    private void Start()
+   void Start()
     {
         CreateBoard();
         SetPlayPieces(NumberOfPlayers);
@@ -211,7 +211,7 @@ public class QuoridorController : MonoBehaviour
             if (actualBlocker)
             {
                 findSpotToPlaceBlock();
-                CheckIfBlockDeleted();
+                
                 blockerPlace.SetActive(true);
             }
             else
@@ -247,20 +247,15 @@ public class QuoridorController : MonoBehaviour
             }
         }
     }
-    void CheckIfBlockDeleted()
-    {
-        if (actualBlocker)
-        {
-
-        }
-    }
+    
     public void addBlockerPiece()
     {
         if (movablePiece.NumOfBlockPieces > 0)
         {
-            GameObject blockPiece = Instantiate(BlockerPiece, Vector3.zero, Quaternion.identity);
+            GameObject blockerPiece = Instantiate(BlockerPiece, Vector3.zero, Quaternion.identity);
+            blockerPiece.transform.parent = Blocker.gameObject.transform;
 
-            actualBlocker = BlockerPiece.GetComponent<Blocker>();
+            actualBlocker = blockerPiece.GetComponent<Blocker>();
 
             actualBlocker.isBeingDragged = true;
         }
@@ -350,6 +345,7 @@ public class QuoridorController : MonoBehaviour
         }
 
     }
+    
 
     void WaitForMove()
     {
@@ -365,7 +361,7 @@ public class QuoridorController : MonoBehaviour
             if (hit.transform.gameObject.tag == "Board_Segment")
             {
                 BoardPiece _boardPiece = hit.transform.GetComponent<BoardPiece>();
-                if (!_boardPiece.HasActivePlayerOnTop)
+                if (!_boardPiece.hasPlayerOnTop)
                 {
                     movablePiece.MakeAMove(_boardPiece, movablePiece.transform.forward);
                 }
@@ -373,228 +369,343 @@ public class QuoridorController : MonoBehaviour
 
         }
     }
+    void PlaceBlocker(Vector3 position)
+    {
+        Instantiate(Blocker, position, Quaternion.identity);
+
+        // Buscar los BoardPieces cercanos y actualizar sus bloqueos
+        Collider[] colliders = Physics.OverlapBox(position, new Vector3(1f, 1f, 1f));
+
+        foreach (Collider collider in colliders)
+        {
+            BoardPiece piece = collider.GetComponent<BoardPiece>();
+            if (piece != null)
+            {
+                piece.UpdateSurroundingBlocker();
+            }
+        }
+    }
+
 
     void HighlightBoardPiece()
     {
-        
-        
-            foreach (var _boardPiece in board.BoardPieces)
+       foreach (var _boardPiece in board.BoardPieces)
+        {
+            if (_boardPiece.HasActivePlayerOnTop)
             {
-                if (_boardPiece.HasActivePlayerOnTop)
+                if (_boardPiece.FrontBoard != null)
                 {
-                    if (_boardPiece.FrontBoard != null)
+                    if (!_boardPiece.HasSurroundingBlocker)
                     {
-                        if (!_boardPiece.HasSurroundingBlocker)
+                        if (!_boardPiece.FrontBoard.hasPlayerOnTop)
                         {
-                            if (!_boardPiece.FrontBoard.hasPlayerOnTop)
+                            if (_boardPiece.FrontBoard)
+                                _boardPiece.FrontBoard.PieceCanBeMovedHere = true;
+                        }
+                        else
+                        {
+
+                            RaycastHit hit2;
+                            if (Physics.Raycast(_boardPiece.FrontBoard.playerOnTop.gameObject
+                                .transform.position, transform.TransformDirection(Vector3.forward), out hit2))
                             {
-                                if (_boardPiece.FrontBoard)
-                                    _boardPiece.FrontBoard.PieceCanBeMovedHere = true;
+                                if (_boardPiece.FrontBoard.HasSurroundingBlocker)
+                                {
+
+                                    if (_boardPiece.frontFrontBoard.hasPlayerOnTop)
+                                    {
+                                        if (_boardPiece.frontFrontBoard)
+                                            _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
+
+                                    }
+                                    else
+                                    {
+                                        if (_boardPiece.frontFrontBoard)
+                                            _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
+
+
+                                    }
+
+                                }
+                                else
+                                {
+                                    if (_boardPiece.frontFrontBoard)
+                                        _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
+                                }
                             }
                             else
                             {
+                                if (_boardPiece.frontFrontBoard)
+                                    _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
 
-                                RaycastHit hit2;
+                            }
+
+                        }
+                    }
+                    else if (_boardPiece.HasSurroundingBlocker)
+                    {
+                        RaycastHit hit2;
+                        if (Physics.Raycast(movablePiece.transform.position,
+                            transform.TransformDirection(Vector3.forward),  0.6f
+                            ))
+                        {
+
+                            if (_boardPiece.FrontBoard)
+                                _boardPiece.FrontBoard.PieceCanBeMovedHere = false;
+
+
+                        }
+                        else
+                        {
+
+                            if (_boardPiece.FrontBoard.hasPlayerOnTop)
+                            {
+
+                                RaycastHit hit3;
                                 if (Physics.Raycast(_boardPiece.FrontBoard.playerOnTop.gameObject
-                                    .transform.position, transform.TransformDirection(Vector3.forward), out hit2))
+                                    .transform.position, transform.TransformDirection(Vector3.forward), out hit3))
                                 {
-                                    if (_boardPiece.FrontBoard.HasSurroundingBlocker)
-                                    {
 
-                                        if (_boardPiece.frontFrontBoard.hasPlayerOnTop)
+                                    RaycastHit hit4;
+                                    if (Physics.Raycast(_boardPiece.FrontBoard.playerOnTop.gameObject
+                                        .transform.position, transform.TransformDirection(Vector3.right), out hit4))
+                                    {
+                                        if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
+                                            == global::Blocker.OrientationEnum.Vertical)
+                                        {
+                                            if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
+                                                == global::Blocker.OrientationEnum.Horizontal)
+                                            {
+                                                if (hit3.distance > 1.3f)
+                                                {
+                                                    if (_boardPiece.frontFrontBoard)
+                                                        _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
+                                                }
+                                                else
+                                                {
+                                                    if (_boardPiece.frontFrontBoard)
+                                                        _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
+                                                }
+
+
+                                            }
+                                            else
+                                            {
+                                                if (_boardPiece.frontFrontBoard)
+                                                    _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            if (_boardPiece.frontFrontBoard)
+                                                _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
+
+
+                                        }
+
+                                    }
+
+                                    if (Physics.Raycast(_boardPiece.FrontBoard.playerOnTop.gameObject
+                                        .transform.position, transform.TransformDirection(Vector3.left), out hit4))
+                                    {
+                                        if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
+                                            == global::Blocker.OrientationEnum.Vertical)
+                                        {
+                                            if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
+                                                == global::Blocker.OrientationEnum.Horizontal)
+                                            {
+                                                if (hit3.distance > 1.3f)
+                                                {
+                                                    if (_boardPiece.frontFrontBoard)
+                                                        _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
+                                                }
+                                                else
+                                                {
+                                                    if (_boardPiece.frontFrontBoard)
+                                                        _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
+                                                }
+
+
+
+                                            }
+                                            else
+                                            {
+                                                if (_boardPiece.frontFrontBoard)
+                                                    _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
+                                            }
+                                        }
+                                        else
                                         {
                                             if (_boardPiece.frontFrontBoard)
                                                 _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
 
                                         }
-                                        else
-                                        {
-                                            if (_boardPiece.frontFrontBoard)
-                                                _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
-
-
-                                        }
 
                                     }
-                                    else
-                                    {
-                                        if (_boardPiece.frontFrontBoard)
-                                            _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
-                                    }
+
+
                                 }
                                 else
                                 {
                                     if (_boardPiece.frontFrontBoard)
                                         _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
-
                                 }
-
-                            }
-                        }
-                        else if (_boardPiece.HasSurroundingBlocker)
-                        {
-                            RaycastHit hit2;
-                            if (Physics.Raycast(movablePiece.transform.position,
-                                transform.TransformDirection(Vector3.forward), 0.6f
-                                ))
-                            {
-
-                                if (_boardPiece.FrontBoard)
-                                    _boardPiece.FrontBoard.PieceCanBeMovedHere = false;
-
-
                             }
                             else
                             {
-
-                                if (_boardPiece.FrontBoard.hasPlayerOnTop)
-                                {
-
-                                    RaycastHit hit3;
-                                    if (Physics.Raycast(_boardPiece.FrontBoard.playerOnTop.gameObject
-                                        .transform.position, transform.TransformDirection(Vector3.forward), out hit3))
-                                    {
-
-                                        RaycastHit hit4;
-                                        if (Physics.Raycast(_boardPiece.FrontBoard.playerOnTop.gameObject
-                                            .transform.position, transform.TransformDirection(Vector3.right), out hit4))
-                                        {
-                                            if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
-                                                == global::Blocker.OrientationEnum.Vertical)
-                                            {
-                                                if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
-                                                    == global::Blocker.OrientationEnum.Horizontal)
-                                                {
-                                                    if (hit3.distance > 1.3f)
-                                                    {
-                                                        if (_boardPiece.frontFrontBoard)
-                                                            _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
-                                                    }
-                                                    else
-                                                    {
-                                                        if (_boardPiece.frontFrontBoard)
-                                                            _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
-                                                    }
+                                if (_boardPiece.FrontBoard)
+                                    _boardPiece.FrontBoard.PieceCanBeMovedHere = true;
 
 
-                                                }
-                                                else
-                                                {
-                                                    if (_boardPiece.frontFrontBoard)
-                                                        _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
-                                                }
-
-                                            }
-                                            else
-                                            {
-                                                if (_boardPiece.frontFrontBoard)
-                                                    _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
-
-
-                                            }
-
-                                        }
-
-                                        if (Physics.Raycast(_boardPiece.FrontBoard.playerOnTop.gameObject
-                                            .transform.position, transform.TransformDirection(Vector3.left), out hit4))
-                                        {
-                                            if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
-                                                == global::Blocker.OrientationEnum.Vertical)
-                                            {
-                                                if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
-                                                    == global::Blocker.OrientationEnum.Horizontal)
-                                                {
-                                                    if (hit3.distance > 1.3f)
-                                                    {
-                                                        if (_boardPiece.frontFrontBoard)
-                                                            _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
-                                                    }
-                                                    else
-                                                    {
-                                                        if (_boardPiece.frontFrontBoard)
-                                                            _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
-                                                    }
-
-
-
-                                                }
-                                                else
-                                                {
-                                                    if (_boardPiece.frontFrontBoard)
-                                                        _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (_boardPiece.frontFrontBoard)
-                                                    _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
-
-                                            }
-
-                                        }
-
-
-                                    }
-                                    else
-                                    {
-                                        if (_boardPiece.frontFrontBoard)
-                                            _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
-                                    }
-                                }
-                                else
-                                {
-                                    if (_boardPiece.FrontBoard)
-                                        _boardPiece.FrontBoard.PieceCanBeMovedHere = true;
-
-
-                                }
                             }
-
                         }
 
                     }
 
+                }
 
 
 
-                    if (_boardPiece.RightBoard != null)
+
+                if (_boardPiece.RightBoard != null)
+                {
+                    if (!_boardPiece.HasSurroundingBlocker)
                     {
-                        if (!_boardPiece.HasSurroundingBlocker)
+                        if (!_boardPiece.RightBoard.hasPlayerOnTop)
                         {
-                            if (!_boardPiece.RightBoard.hasPlayerOnTop)
+                            if (_boardPiece.RightBoard)
+                                _boardPiece.RightBoard.PieceCanBeMovedHere = true;
+                        }
+                        else
+                        {
+                            RaycastHit hit2;
+                            if (Physics.Raycast(_boardPiece.RightBoard.playerOnTop.gameObject
+                                .transform.position, transform.TransformDirection(Vector3.right), out hit2))
                             {
-                                if (_boardPiece.RightBoard)
-                                    _boardPiece.RightBoard.PieceCanBeMovedHere = true;
-                            }
-                            else
-                            {
-                                RaycastHit hit2;
-                                if (Physics.Raycast(_boardPiece.RightBoard.playerOnTop.gameObject
-                                    .transform.position, transform.TransformDirection(Vector3.right), out hit2))
+                                if (_boardPiece.RightBoard.HasSurroundingBlocker)
                                 {
-                                    if (_boardPiece.RightBoard.HasSurroundingBlocker)
+
+
+                                    if (_boardPiece.rightRightBoard.hasPlayerOnTop)
                                     {
-
-
-                                        if (_boardPiece.rightRightBoard.hasPlayerOnTop)
-                                        {
-                                            if (_boardPiece.rightRightBoard)
-                                                _boardPiece.rightRightBoard.PieceCanBeMovedHere = false;
-
-                                        }
-                                        else
-                                        {
-                                            if (_boardPiece.rightRightBoard)
-                                                _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
-
-
-                                        }
+                                        if (_boardPiece.rightRightBoard)
+                                            _boardPiece.rightRightBoard.PieceCanBeMovedHere = false;
 
                                     }
                                     else
                                     {
                                         if (_boardPiece.rightRightBoard)
                                             _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
+
+
+                                    }
+
+                                }
+                                else
+                                {
+                                    if (_boardPiece.rightRightBoard)
+                                        _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
+                                }
+                            }
+                            else
+                            {
+                                if (_boardPiece.rightRightBoard)
+                                    _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
+                            }
+                        }
+
+                    }
+                    else
+                    {
+                        RaycastHit hit2;
+                        if (Physics.Raycast(movablePiece.transform.position,
+                            transform.TransformDirection(Vector3.right),
+                            0.6f))
+                        {
+
+                            if (_boardPiece.RightBoard)
+                                _boardPiece.RightBoard.PieceCanBeMovedHere = false;
+
+
+                        }
+                        else
+                        {
+                            if (_boardPiece.RightBoard.hasPlayerOnTop)
+                            {
+                                RaycastHit hit3;
+                                if (Physics.Raycast(_boardPiece.RightBoard.playerOnTop.gameObject
+                                    .transform.position, transform.TransformDirection(Vector3.right), out hit3))
+                                {
+                                    RaycastHit hit4;
+                                    if (Physics.Raycast(_boardPiece.RightBoard.playerOnTop.gameObject
+                                        .transform.position, transform.TransformDirection(Vector3.back), out hit4))
+                                    {
+                                        if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
+                                            == global::Blocker.OrientationEnum.Horizontal)
+                                        {
+                                            if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
+                                                == global::Blocker.OrientationEnum.Vertical)
+                                            {
+                                                if (hit3.distance > 1.3f)
+                                                {
+                                                    if (_boardPiece.rightRightBoard)
+                                                        _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
+                                                }
+                                                else
+                                                {
+                                                    if (_boardPiece.rightRightBoard)
+                                                        _boardPiece.rightRightBoard.PieceCanBeMovedHere = false;
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                if (_boardPiece.rightRightBoard)
+                                                    _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (_boardPiece.rightRightBoard)
+                                                _boardPiece.rightRightBoard.PieceCanBeMovedHere = false;
+                                        }
+
+                                    }
+
+                                    if (Physics.Raycast(_boardPiece.RightBoard.playerOnTop.gameObject
+                                        .transform.position, transform.TransformDirection(Vector3.forward), out hit4))
+                                    {
+                                        if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
+                                            == global::Blocker.OrientationEnum.Horizontal)
+                                        {
+                                            if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
+                                                == global::Blocker.OrientationEnum.Vertical)
+                                            {
+                                                if (hit3.distance > 1.3f)
+                                                {
+                                                    if (_boardPiece.rightRightBoard)
+                                                        _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
+                                                }
+                                                else
+                                                {
+                                                    if (_boardPiece.rightRightBoard)
+                                                        _boardPiece.rightRightBoard.PieceCanBeMovedHere = false;
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                if (_boardPiece.rightRightBoard)
+                                                    _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (_boardPiece.rightRightBoard)
+                                                _boardPiece.rightRightBoard.PieceCanBeMovedHere = false;
+                                        }       
+
                                     }
                                 }
                                 else
@@ -603,329 +714,223 @@ public class QuoridorController : MonoBehaviour
                                         _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
                                 }
                             }
+                            else
+                            {
+                                if (_boardPiece.RightBoard)
+                                    _boardPiece.RightBoard.PieceCanBeMovedHere = true;
+                            }
+                        }
+                    }
+
+                }
+
+                if (_boardPiece.LeftBoard != null)
+                {
+                    if (!_boardPiece.HasSurroundingBlocker)
+                    {
+                        if (!_boardPiece.LeftBoard.hasPlayerOnTop)
+                        {
+                            if (_boardPiece.LeftBoard)
+                                _boardPiece.LeftBoard.PieceCanBeMovedHere = true;
 
                         }
                         else
                         {
                             RaycastHit hit2;
-                            if (Physics.Raycast(movablePiece.transform.position,
-                                transform.TransformDirection(Vector3.right),
-                                0.6f))
+                            if (Physics.Raycast(_boardPiece.LeftBoard.playerOnTop.gameObject
+                                .transform.position, transform.TransformDirection(Vector3.left), out hit2))
                             {
-
-                                if (_boardPiece.RightBoard)
-                                    _boardPiece.RightBoard.PieceCanBeMovedHere = false;
-
-
-                            }
-                            else
-                            {
-                                if (_boardPiece.RightBoard.hasPlayerOnTop)
+                                if (_boardPiece.LeftBoard.HasSurroundingBlocker)
                                 {
-                                    RaycastHit hit3;
-                                    if (Physics.Raycast(_boardPiece.RightBoard.playerOnTop.gameObject
-                                        .transform.position, transform.TransformDirection(Vector3.right), out hit3))
+                                    if (_boardPiece.leftLeftBoard.hasPlayerOnTop)
                                     {
-                                        RaycastHit hit4;
-                                        if (Physics.Raycast(_boardPiece.RightBoard.playerOnTop.gameObject
-                                            .transform.position, transform.TransformDirection(Vector3.back), out hit4))
-                                        {
-                                            if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
-                                                == global::Blocker.OrientationEnum.Horizontal)
-                                            {
-                                                if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
-                                                    == global::Blocker.OrientationEnum.Vertical)
-                                                {
-                                                    if (hit3.distance > 1.3f)
-                                                    {
-                                                        if (_boardPiece.rightRightBoard)
-                                                            _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
-                                                    }
-                                                    else
-                                                    {
-                                                        if (_boardPiece.rightRightBoard)
-                                                            _boardPiece.rightRightBoard.PieceCanBeMovedHere = false;
-                                                    }
+                                        if (_boardPiece.leftLeftBoard)
+                                            _boardPiece.leftLeftBoard.PieceCanBeMovedHere = false;
 
-                                                }
-                                                else
-                                                {
-                                                    if (_boardPiece.rightRightBoard)
-                                                        _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (_boardPiece.rightRightBoard)
-                                                    _boardPiece.rightRightBoard.PieceCanBeMovedHere = false;
-                                            }
+                                        Debug.Log("jejejeje");
 
-                                        }
-
-                                        if (Physics.Raycast(_boardPiece.RightBoard.playerOnTop.gameObject
-                                            .transform.position, transform.TransformDirection(Vector3.forward), out hit4))
-                                        {
-                                            if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
-                                                == global::Blocker.OrientationEnum.Horizontal)
-                                            {
-                                                if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
-                                                    == global::Blocker.OrientationEnum.Vertical)
-                                                {
-                                                    if (hit3.distance > 1.3f)
-                                                    {
-                                                        if (_boardPiece.rightRightBoard)
-                                                            _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
-                                                    }
-                                                    else
-                                                    {
-                                                        if (_boardPiece.rightRightBoard)
-                                                            _boardPiece.rightRightBoard.PieceCanBeMovedHere = false;
-                                                    }
-
-                                                }
-                                                else
-                                                {
-                                                    if (_boardPiece.rightRightBoard)
-                                                        _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (_boardPiece.rightRightBoard)
-                                                    _boardPiece.rightRightBoard.PieceCanBeMovedHere = false;
-                                            }
-
-                                        }
                                     }
                                     else
                                     {
-                                        if (_boardPiece.rightRightBoard)
-                                            _boardPiece.rightRightBoard.PieceCanBeMovedHere = true;
+                                        if (_boardPiece.leftLeftBoard)
+                                            _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
+
+
+
+
+
                                     }
                                 }
                                 else
                                 {
-                                    if (_boardPiece.RightBoard)
-                                        _boardPiece.RightBoard.PieceCanBeMovedHere = true;
+                                    if (_boardPiece.leftLeftBoard)
+                                        _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
+
+
                                 }
+                            }
+                            else
+                            {
+
+                                if (_boardPiece.leftLeftBoard)
+                                {
+                                    _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
+                                }
+
                             }
                         }
 
                     }
-
-                    if (_boardPiece.LeftBoard != null)
+                    else
                     {
-                        if (!_boardPiece.HasSurroundingBlocker)
+                        RaycastHit hit2;
+                        if (Physics.Raycast(movablePiece.transform.position,
+                            transform.TransformDirection(Vector3.left),
+                            0.6f))
                         {
-                            if (!_boardPiece.LeftBoard.hasPlayerOnTop)
-                            {
-                                if (_boardPiece.LeftBoard)
-                                    _boardPiece.LeftBoard.PieceCanBeMovedHere = true;
 
-                            }
-                            else
+                            if (_boardPiece.LeftBoard)
+                                _boardPiece.LeftBoard.PieceCanBeMovedHere = false;
+
+                        }
+                        else
+                        {
+                            if (_boardPiece.LeftBoard.hasPlayerOnTop)
                             {
-                                RaycastHit hit2;
+                                RaycastHit hit3;
                                 if (Physics.Raycast(_boardPiece.LeftBoard.playerOnTop.gameObject
-                                    .transform.position, transform.TransformDirection(Vector3.left), out hit2))
+                                    .transform.position, transform.TransformDirection(Vector3.left), out hit3))
                                 {
-                                    if (_boardPiece.LeftBoard.HasSurroundingBlocker)
+                                    RaycastHit hit4;
+                                    if (Physics.Raycast(_boardPiece.LeftBoard.playerOnTop.gameObject
+                                        .transform.position, transform.TransformDirection(Vector3.back), out hit4))
                                     {
-                                        if (_boardPiece.leftLeftBoard.hasPlayerOnTop)
+                                        if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
+                                            == global::Blocker.OrientationEnum.Horizontal)
+                                        {
+                                            if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
+                                                == global::Blocker.OrientationEnum.Vertical)
+                                            {
+                                                if (hit3.distance > 1.3f)
+                                                {
+                                                    if (_boardPiece.leftLeftBoard)
+                                                        _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
+                                                }
+                                                else
+                                                {
+                                                    if (_boardPiece.leftLeftBoard)
+                                                        _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                if (_boardPiece.leftLeftBoard)
+                                                    _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
+
+                                            }
+                                        }
+                                        else
                                         {
                                             if (_boardPiece.leftLeftBoard)
                                                 _boardPiece.leftLeftBoard.PieceCanBeMovedHere = false;
 
                                             Debug.Log("jejejeje");
+                                        }
 
+                                    }
+
+                                    if (Physics.Raycast(_boardPiece.LeftBoard.playerOnTop.gameObject
+                                        .transform.position, transform.TransformDirection(Vector3.forward), out hit4))
+                                    {
+                                        if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
+                                            == global::Blocker.OrientationEnum.Horizontal)
+                                        {
+                                            if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
+                                                == global::Blocker.OrientationEnum.Vertical)
+                                            {
+                                                if (hit3.distance > 1.3f)
+                                                {
+                                                    if (_boardPiece.leftLeftBoard)
+                                                        _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
+                                                }
+                                                else
+                                                {
+                                                    if (_boardPiece.leftLeftBoard)
+                                                        _boardPiece.leftLeftBoard.PieceCanBeMovedHere = false;
+
+                                                    Debug.Log("jejejeje");
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                if (_boardPiece.leftLeftBoard)
+                                                    _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
+
+
+                                            }
                                         }
                                         else
                                         {
                                             if (_boardPiece.leftLeftBoard)
-                                                _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
+                                                _boardPiece.leftLeftBoard.PieceCanBeMovedHere = false;
 
-
-
-
-
+                                            Debug.Log("jejejeje");
                                         }
-                                    }
-                                    else
-                                    {
-                                        if (_boardPiece.leftLeftBoard)
-                                            _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
-
 
                                     }
                                 }
                                 else
                                 {
-
                                     if (_boardPiece.leftLeftBoard)
-                                    {
                                         _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
-                                    }
+
 
                                 }
                             }
+                            else
+                            {
+                                if (_boardPiece.LeftBoard)
+                                    _boardPiece.LeftBoard.PieceCanBeMovedHere = true;
 
+
+                            }
+                        }
+                    }
+
+                }
+
+                if (_boardPiece.BackBoard != null)
+                {
+
+                    if (!_boardPiece.HasSurroundingBlocker)
+                    {
+                        if (!_boardPiece.BackBoard.hasPlayerOnTop)
+                        {
+                            if (_boardPiece.BackBoard)
+                                _boardPiece.BackBoard.PieceCanBeMovedHere = true;
                         }
                         else
                         {
                             RaycastHit hit2;
-                            if (Physics.Raycast(movablePiece.transform.position,
-                                transform.TransformDirection(Vector3.left),
-                                0.6f))
+                            if (Physics.Raycast(_boardPiece.BackBoard.playerOnTop.gameObject
+                                .transform.position, transform.TransformDirection(Vector3.back), out hit2))
                             {
-
-                                if (_boardPiece.LeftBoard)
-                                    _boardPiece.LeftBoard.PieceCanBeMovedHere = false;
-
-                            }
-                            else
-                            {
-                                if (_boardPiece.LeftBoard.hasPlayerOnTop)
+                                if (_boardPiece.BackBoard.HasSurroundingBlocker)
                                 {
-                                    RaycastHit hit3;
-                                    if (Physics.Raycast(_boardPiece.LeftBoard.playerOnTop.gameObject
-                                        .transform.position, transform.TransformDirection(Vector3.left), out hit3))
+                                    if (_boardPiece.backBackBoard.hasPlayerOnTop)
                                     {
-                                        RaycastHit hit4;
-                                        if (Physics.Raycast(_boardPiece.LeftBoard.playerOnTop.gameObject
-                                            .transform.position, transform.TransformDirection(Vector3.back), out hit4))
-                                        {
-                                            if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
-                                                == global::Blocker.OrientationEnum.Horizontal)
-                                            {
-                                                if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
-                                                    == global::Blocker.OrientationEnum.Vertical)
-                                                {
-                                                    if (hit3.distance > 1.3f)
-                                                    {
-                                                        if (_boardPiece.leftLeftBoard)
-                                                            _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
-                                                    }
-                                                    else
-                                                    {
-                                                        if (_boardPiece.leftLeftBoard)
-                                                            _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
-                                                    }
+                                        if (_boardPiece.backBackBoard)
+                                            _boardPiece.backBackBoard.PieceCanBeMovedHere = false;
 
-                                                }
-                                                else
-                                                {
-                                                    if (_boardPiece.leftLeftBoard)
-                                                        _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
-
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (_boardPiece.leftLeftBoard)
-                                                    _boardPiece.leftLeftBoard.PieceCanBeMovedHere = false;
-
-                                                Debug.Log("jejejeje");
-                                            }
-
-                                        }
-
-                                        if (Physics.Raycast(_boardPiece.LeftBoard.playerOnTop.gameObject
-                                            .transform.position, transform.TransformDirection(Vector3.forward), out hit4))
-                                        {
-                                            if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
-                                                == global::Blocker.OrientationEnum.Horizontal)
-                                            {
-                                                if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
-                                                    == global::Blocker.OrientationEnum.Vertical)
-                                                {
-                                                    if (hit3.distance > 1.3f)
-                                                    {
-                                                        if (_boardPiece.leftLeftBoard)
-                                                            _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
-                                                    }
-                                                    else
-                                                    {
-                                                        if (_boardPiece.leftLeftBoard)
-                                                            _boardPiece.leftLeftBoard.PieceCanBeMovedHere = false;
-
-                                                        Debug.Log("jejejeje");
-                                                    }
-
-                                                }
-                                                else
-                                                {
-                                                    if (_boardPiece.leftLeftBoard)
-                                                        _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
-
-
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (_boardPiece.leftLeftBoard)
-                                                    _boardPiece.leftLeftBoard.PieceCanBeMovedHere = false;
-
-                                                Debug.Log("jejejeje");
-                                            }
-
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (_boardPiece.leftLeftBoard)
-                                            _boardPiece.leftLeftBoard.PieceCanBeMovedHere = true;
-
-
-                                    }
-                                }
-                                else
-                                {
-                                    if (_boardPiece.LeftBoard)
-                                        _boardPiece.LeftBoard.PieceCanBeMovedHere = true;
-
-
-                                }
-                            }
-                        }
-
-                    }
-
-                    if (_boardPiece.BackBoard != null)
-                    {
-
-                        if (!_boardPiece.HasSurroundingBlocker)
-                        {
-                            if (!_boardPiece.BackBoard.hasPlayerOnTop)
-                            {
-                                if (_boardPiece.BackBoard)
-                                    _boardPiece.BackBoard.PieceCanBeMovedHere = true;
-                            }
-                            else
-                            {
-                                RaycastHit hit2;
-                                if (Physics.Raycast(_boardPiece.BackBoard.playerOnTop.gameObject
-                                    .transform.position, transform.TransformDirection(Vector3.back), out hit2))
-                                {
-                                    if (_boardPiece.BackBoard.HasSurroundingBlocker)
-                                    {
-                                        if (_boardPiece.backBackBoard.hasPlayerOnTop)
-                                        {
-                                            if (_boardPiece.backBackBoard)
-                                                _boardPiece.backBackBoard.PieceCanBeMovedHere = false;
-
-                                        }
-                                        else
-                                        {
-                                            if (_boardPiece.backBackBoard)
-                                                _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
-
-
-                                        }
                                     }
                                     else
                                     {
                                         if (_boardPiece.backBackBoard)
                                             _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
+
+
                                     }
                                 }
                                 else
@@ -934,78 +939,43 @@ public class QuoridorController : MonoBehaviour
                                         _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
                                 }
                             }
+                            else
+                            {
+                                if (_boardPiece.backBackBoard)
+                                    _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
+                            }
+                        }
+
+                    }
+                    else
+                    {
+                        RaycastHit hit2;
+                        if (Physics.Raycast(movablePiece.transform.position,
+                            transform.TransformDirection(Vector3.back),
+                            0.6f))
+                        {
+
+                            if (_boardPiece.BackBoard)
+                                _boardPiece.BackBoard.PieceCanBeMovedHere = false;
 
                         }
                         else
                         {
-                            RaycastHit hit2;
-                            if (Physics.Raycast(movablePiece.transform.position,
-                                transform.TransformDirection(Vector3.back),
-                                0.6f))
+                            if (_boardPiece.BackBoard.hasPlayerOnTop)
                             {
-
-                                if (_boardPiece.BackBoard)
-                                    _boardPiece.BackBoard.PieceCanBeMovedHere = false;
-
-                            }
-                            else
-                            {
-                                if (_boardPiece.BackBoard.hasPlayerOnTop)
+                                RaycastHit hit3;
+                                if (Physics.Raycast(_boardPiece.BackBoard.playerOnTop.gameObject
+                                    .transform.position, transform.TransformDirection(Vector3.back), out hit3))
                                 {
-                                    RaycastHit hit3;
+                                    RaycastHit hit4;
                                     if (Physics.Raycast(_boardPiece.BackBoard.playerOnTop.gameObject
-                                        .transform.position, transform.TransformDirection(Vector3.back), out hit3))
+                                        .transform.position, transform.TransformDirection(Vector3.left), out hit4))
                                     {
-                                        RaycastHit hit4;
-                                        if (Physics.Raycast(_boardPiece.BackBoard.playerOnTop.gameObject
-                                            .transform.position, transform.TransformDirection(Vector3.left), out hit4))
+                                        if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
+                                            == global::Blocker.OrientationEnum.Vertical)
                                         {
-                                            if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
-                                                == global::Blocker.OrientationEnum.Vertical)
-                                            {
-                                                if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
-                                                    == global::Blocker.OrientationEnum.Horizontal)
-                                                {
-                                                    if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
-                                                        == global::Blocker.OrientationEnum.Horizontal)
-                                                    {
-                                                        if (hit3.distance > 1.3f)
-                                                        {
-                                                            if (_boardPiece.backBackBoard)
-                                                                _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
-                                                        }
-                                                        else
-                                                        {
-                                                            if (_boardPiece.backBackBoard)
-                                                                _boardPiece.backBackBoard.PieceCanBeMovedHere = false;
-                                                        }
-
-                                                    }
-                                                    else
-                                                    {
-                                                        if (_boardPiece.backBackBoard)
-                                                            _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    if (_boardPiece.backBackBoard)
-                                                        _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (_boardPiece.backBackBoard)
-                                                    _boardPiece.backBackBoard.PieceCanBeMovedHere = false;
-                                            }
-
-                                        }
-
-                                        if (Physics.Raycast(_boardPiece.BackBoard.playerOnTop.gameObject
-                                            .transform.position, transform.TransformDirection(Vector3.right), out hit4))
-                                        {
-                                            if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
-                                                == global::Blocker.OrientationEnum.Vertical)
+                                            if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
+                                                == global::Blocker.OrientationEnum.Horizontal)
                                             {
                                                 if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
                                                     == global::Blocker.OrientationEnum.Horizontal)
@@ -1031,63 +1001,163 @@ public class QuoridorController : MonoBehaviour
                                             else
                                             {
                                                 if (_boardPiece.backBackBoard)
-                                                    _boardPiece.backBackBoard.PieceCanBeMovedHere = false;
+                                                    _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
                                             }
-
                                         }
+                                        else
+                                        {
+                                            if (_boardPiece.backBackBoard)
+                                                _boardPiece.backBackBoard.PieceCanBeMovedHere = false;
+                                        }
+
                                     }
-                                    else
+
+                                    if (Physics.Raycast(_boardPiece.BackBoard.playerOnTop.gameObject
+                                        .transform.position, transform.TransformDirection(Vector3.right), out hit4))
                                     {
-                                        if (_boardPiece.backBackBoard)
-                                            _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
+                                        if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
+                                            == global::Blocker.OrientationEnum.Vertical)
+                                        {
+                                            if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
+                                                == global::Blocker.OrientationEnum.Horizontal)
+                                            {
+                                                if (hit3.distance > 1.3f)
+                                                {
+                                                    if (_boardPiece.backBackBoard)
+                                                        _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
+                                                }
+                                                else
+                                                {
+                                                    if (_boardPiece.backBackBoard)
+                                                        _boardPiece.backBackBoard.PieceCanBeMovedHere = false;
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                if (_boardPiece.backBackBoard)
+                                                    _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (_boardPiece.backBackBoard)
+                                                _boardPiece.backBackBoard.PieceCanBeMovedHere = false;
+                                        }
+
                                     }
                                 }
                                 else
                                 {
-                                    if (_boardPiece.BackBoard)
-                                        _boardPiece.BackBoard.PieceCanBeMovedHere = true;
+                                    if (_boardPiece.backBackBoard)
+                                        _boardPiece.backBackBoard.PieceCanBeMovedHere = true;
                                 }
                             }
+                            else
+                            {
+                                if (_boardPiece.BackBoard)
+                                    _boardPiece.BackBoard.PieceCanBeMovedHere = true;
+                            }
                         }
-
-
                     }
+
+
                 }
-
-
             }
 
-            int layerMask = LayerMask.GetMask("BoardPieces");
 
+        }
+        int layerMask = LayerMask.GetMask("BoardPieces");
 
-            RaycastHit hit;
+        RaycastHit hit;
 
-            if (Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, Mathf.Infinity, layerMask))
+        if (Physics.Raycast(cam.ScreenPointToRay(Input.mousePosition), out hit, Mathf.Infinity, layerMask))
+
+        {
+            BoardPiece _boardPiece = hit.transform.GetComponent<BoardPiece>();
+
+            if (!cam.GetComponent<SimpleCameraController>().IsCameraMoving)
             {
-                BoardPiece _boardPiece = hit.transform.GetComponent<BoardPiece>();
+                if (!_boardPiece.hasPlayerOnTop)
+                    _boardPiece.setHighlight(true, movablePiece, board);
+            }
 
-                if (!cam.GetComponent<SimpleCameraController>().IsCameraMoving)
+
+        }
+        else
+        {
+            foreach (var boardPiece in board.BoardPieces)
+            {
+                boardPiece.setHighlight(false, movablePiece, board);
+            }
+        }
+        /*foreach (var _boardPiece in board.BoardPieces)
+        {
+            if (_boardPiece.HasActivePlayerOnTop)
+            {
+                if (_boardPiece.FrontBoard)
                 {
-                    if (!_boardPiece.hasPlayerOnTop)
+                    if (!_boardPiece.HasSurroundingBlocker)
                     {
-                        _boardPiece.setHighlight(true, movablePiece, board);
+                        if (!_boardPiece.FrontBoard.hasPlayerOnTop)
+                        {
+                            
+                            
+                            _boardPiece.FrontBoard.PieceCanBeMovedHere = true;
+                            
+                        }
+                        else
+                        {
+                            _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
+                        }
                     }
-
-
-
-
+                    else
+                    {
+                        _boardPiece.FrontBoard.PieceCanBeMovedHere = true;
+                    }
                 }
-            }
-            else
-            {
-                foreach (var boardPiece in board.BoardPieces)
+                
+                if (_boardPiece.RightBoard)
                 {
-                    boardPiece.setHighlight(false, movablePiece, board);
+                    if (!_boardPiece.HasSurroundingBlocker)
+                    {
+                        if (!_boardPiece.RightBoard.hasPlayerOnTop)
+                        {
+
+                            _boardPiece.RightBoard.PieceCanBeMovedHere = true;
+                        }
+                    }
+                }
+                if (_boardPiece.LeftBoard)
+                {
+                    if (!_boardPiece.HasSurroundingBlocker)
+                    {
+                        if (!_boardPiece.LeftBoard.hasPlayerOnTop)
+                        {
+                            _boardPiece.LeftBoard.PieceCanBeMovedHere = true;
+                        }
+                        
+                    }
+                }
+                if (_boardPiece.BackBoard)
+                {
+                    if (!_boardPiece.HasSurroundingBlocker)
+                    {
+                        if (!_boardPiece.BackBoard.hasPlayerOnTop)
+                        {
+                            
+                            _boardPiece.BackBoard.PieceCanBeMovedHere = true;
+                        }
+                    }
                 }
             }
+        }*/
 
 
 
-        
+
+
+
+
     }
 }

@@ -27,7 +27,7 @@ public class PlaceBlocker : MonoBehaviour
 
     private bool hasCheckedBoardPieces;
 
-    private void Start()
+    void Start()
     {
         hasBlocker = false;
         blocker = null;
@@ -247,11 +247,7 @@ public class PlaceBlocker : MonoBehaviour
         }
 
 
-        if (QC.actualBlocker)
-        {
-
-
-        }
+        
 
         if (hasBlocker)
         {

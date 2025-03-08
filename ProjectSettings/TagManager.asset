@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Board_Segment
   - Blocker
+  - PlaceBlocker
+  - Piece
   layers:
   - Default
   - TransparentFX
@@ -13,8 +15,8 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
+  - BoardPieces
+  - BlockerPiece
   - 
   - 
   - 

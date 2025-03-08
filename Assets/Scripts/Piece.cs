@@ -76,14 +76,14 @@ public class Piece : MonoBehaviour
         colorOfPiece = GetComponent<Renderer>().material.color;
     }
 
-    public void MakeAMove(BoardPiece _boardPiece, Vector3 _forwardV)
+    public void MakeAMove(BoardPiece _selectedBoardPiece, Vector3 _forwardV)
     {
-        if (_boardPiece.PieceCanBeMovedHere)
+        if (_selectedBoardPiece.PieceCanBeMovedHere)
         {
-            transform.position = _boardPiece.getPos() + new Vector3(0, transform.localScale.y / 2, 0);
+            transform.position = _selectedBoardPiece.getPos() + new Vector3(0, transform.localScale.y / 2, 0);
         }
 
-        if (transform.position == _boardPiece.getPos() + new Vector3(0, transform.localScale.y / 2, 0))
+        if (transform.position == _selectedBoardPiece.getPos() + new Vector3(0, transform.localScale.y / 2, 0))
         {
             if (NumPlaysForward != 8)
             {
@@ -127,19 +127,19 @@ public class Piece : MonoBehaviour
             boardBackWard = currentBoardPiece.RightBoard;
             boardBackWardTwice = currentBoardPiece.rightRightBoard;
         }
-        if(_boardPiece == boardForward && _boardPiece.PieceCanBeMovedHere)
+        if(_selectedBoardPiece == boardForward && _selectedBoardPiece.PieceCanBeMovedHere)
         {
             NumPlaysForward++;
         }
-        else if(_boardPiece == boardForwardTwice && _boardPiece.PieceCanBeMovedHere)
+        else if(_selectedBoardPiece == boardForwardTwice && _selectedBoardPiece.PieceCanBeMovedHere)
         {
             NumPlaysForward = NumPlaysForward + 2;
         }
-        else if (_boardPiece == boardBackWard && _boardPiece.PieceCanBeMovedHere)
+        else if (_selectedBoardPiece == boardBackWard && _selectedBoardPiece.PieceCanBeMovedHere)
         {
             NumPlaysForward--;
         }
-        else if (_boardPiece == boardBackWardTwice && _boardPiece.PieceCanBeMovedHere)
+        else if (_selectedBoardPiece == boardBackWardTwice && _selectedBoardPiece.PieceCanBeMovedHere)
         {
             NumPlaysForward = NumPlaysForward - 2;
         }

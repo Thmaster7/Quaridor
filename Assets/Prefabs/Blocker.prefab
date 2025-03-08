@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 8769474981754567870}
   - component: {fileID: 5388158809847458109}
   - component: {fileID: 3238251757743067133}
-  m_Layer: 0
+  - component: {fileID: 7171795688761457344}
+  m_Layer: 7
   m_Name: Blocker
   m_TagString: Blocker
   m_Icon: {fileID: 0}
@@ -28,8 +29,8 @@ Transform:
   m_GameObject: {fileID: 4391153088462879715}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 261.4305, y: 86.40451, z: 320.82513}
-  m_LocalScale: {x: 0.13762218, y: 0.37539, z: 1}
+  m_LocalPosition: {x: 1.8000001, y: 0.187695, z: 0.6}
+  m_LocalScale: {x: 2.1, y: 1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -53,7 +54,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
+  m_StaticShadowCaster: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -102,9 +103,24 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7171795688761457344
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4391153088462879715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b332a76b6ff00bf4bb585b9a91449c94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isBeingDragged: 0
+  hasBeenPlaced: 0
+  orientation: 0
