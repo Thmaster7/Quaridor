@@ -287,13 +287,25 @@ public class QuoridorController : MonoBehaviour
 
                     blockerPlace.hasBlocker = true;
                     if (blockerPlace.BP1)
+                    {
                         blockerPlace.BP1.HasSurroundingBlocker = true;
+                    }
+                        
                     if (blockerPlace.BP2)
+                    {
                         blockerPlace.BP2.HasSurroundingBlocker = true;
+                    }
+                        
                     if (blockerPlace.BP3)
+                    {
                         blockerPlace.BP3.HasSurroundingBlocker = true;
+                    }
+                        
                     if (blockerPlace.BP4)
+                    {
                         blockerPlace.BP4.HasSurroundingBlocker = true;
+                    }
+                        
 
                 }
 
@@ -407,7 +419,7 @@ public class QuoridorController : MonoBehaviour
                                     else
                                     {
                                         if (_boardPiece.frontFrontBoard)
-                                            _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
+                                            _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
 
 
                                     }
@@ -416,7 +428,7 @@ public class QuoridorController : MonoBehaviour
                                 else
                                 {
                                     if (_boardPiece.frontFrontBoard)
-                                        _boardPiece.frontFrontBoard.PieceCanBeMovedHere = false;
+                                        _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
                                 }
                             }
                             else
@@ -1087,10 +1099,10 @@ public class QuoridorController : MonoBehaviour
                     {
                         if (!_boardPiece.FrontBoard.hasPlayerOnTop)
                         {
-                            
-                            
+
+
                             _boardPiece.FrontBoard.PieceCanBeMovedHere = true;
-                            
+
                         }
                         else
                         {
@@ -1099,7 +1111,63 @@ public class QuoridorController : MonoBehaviour
                     }
                     else
                     {
-                        _boardPiece.FrontBoard.PieceCanBeMovedHere = true;
+                        RaycastHit hit2;
+                        if (Physics.Raycast(_boardPiece.FrontBoard.playerOnTop.gameObject
+                                .transform.position, transform.TransformDirection(Vector3.forward), out hit2))
+                        {
+                            if (!_boardPiece.FrontBoard.HasSurroundingBlocker)
+                            {
+                                if (!_boardPiece.FrontBoard.hasPlayerOnTop)
+                                {
+                                    if (_boardPiece.FrontBoard)
+                                    {
+                                        _boardPiece.FrontBoard.PieceCanBeMovedHere = true;
+                                    }
+                                }
+                                else
+                                {
+                                    _boardPiece.frontFrontBoard.PieceCanBeMovedHere = true;
+                                }
+                            }
+                            else
+                            {
+                                RaycastHit hit3;
+                                if (Physics.Raycast(_boardPiece.FrontBoard.playerOnTop.gameObject
+                                    .transform.position, transform.TransformDirection(Vector3.forward), out hit3))
+
+                                {
+                                    RaycastHit hit4;
+                                    if (Physics.Raycast(_boardPiece.FrontBoard.playerOnTop.gameObject
+                                        .transform.position, transform.TransformDirection(Vector3.right), out hit4))
+                                    {
+                                        if (hit4.transform.gameObject.GetComponent<Blocker>().orientation
+                                                == global::Blocker.OrientationEnum.Vertical)
+                                        {
+                                            if (hit3.transform.gameObject.GetComponent<Blocker>().orientation
+                                                == global::Blocker.OrientationEnum.Horizontal)
+                                            {
+                                                if (hit3.distance > 1.3f && hit4.distance > 1.3f)
+                                                {
+                                                    if (_boardPiece.FrontBoard.HasSurroundingBlocker)
+                                                    {
+                                                        _boardPiece.FrontBoard.PieceCanBeMovedHere = false;
+                                                    }
+                                                    else
+                                                    {
+                                                        _boardPiece.FrontBoard.PieceCanBeMovedHere = true;
+                                                    }
+                                                }
+
+                                            }
+                                        }
+                                    }
+                                }
+
+                            }
+                        
+
+
+                        }
                     }
                 }
                 

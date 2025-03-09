@@ -125,21 +125,7 @@ public class BoardPiece : MonoBehaviour
 
 
     }
-    public void UpdateSurroundingBlocker()
-    {
-        Collider[] colliders = Physics.OverlapBox(transform.position, new Vector3(0.5f, 1f, 0.5f));
-
-        foreach (Collider collider in colliders)
-        {
-            if (collider.GetComponent<Blocker>())
-            {
-                HasSurroundingBlocker = true;
-                return; // Si encuentra un muro, termina la función
-            }
-        }
-
-        HasSurroundingBlocker = false; // Si no encuentra muros, lo pone en falso
-    }
+    
 
     private void Update()
     {
