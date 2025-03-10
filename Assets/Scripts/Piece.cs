@@ -7,6 +7,8 @@ public class Piece : MonoBehaviour
 
     [SerializeField] private int orderInTurn;
 
+    
+
     public bool hasWon;
 
     public Vector3 forwardVector;
@@ -87,6 +89,8 @@ public class Piece : MonoBehaviour
         {
             if (NumPlaysForward != 8)
             {
+                AudioSource audio = currentBoardPiece.gameObject.GetComponent<AudioSource>();
+                audio.Play();
                 isTurnDone = true;
 
             }

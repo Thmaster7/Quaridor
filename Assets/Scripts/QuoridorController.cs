@@ -284,6 +284,8 @@ public class QuoridorController : MonoBehaviour
                     blockerPlace.setBlocker(actualBlocker);
                     actualBlocker = null;
                     movablePiece.NumOfBlockPieces--;
+                    AudioSource blockerAudio = blockerPlace.gameObject.GetComponent<AudioSource>();
+                    blockerAudio.Play();
 
                     blockerPlace.hasBlocker = true;
                     if (blockerPlace.BP1)
